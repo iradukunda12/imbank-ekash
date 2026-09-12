@@ -1,6 +1,6 @@
 import { useNavigation } from '../../../app/routing/useNavigation';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
-import { useTheme } from '../../../features/theme/useTheme';
+// import { useTheme } from '../../../features/theme/useTheme';
 import { NotificationsMenu } from '../../../features/notifications/components/NotificationsMenu';
 import { cn } from '../../lib/cn';
 import { Avatar } from '../../components/ui/Avatar';
@@ -13,9 +13,9 @@ import {
   LockIcon,
   LogOutIcon,
   MenuIcon,
-  MoonIcon,
+  // MoonIcon,
   SettingsIcon,
-  SunIcon,
+  // SunIcon,
   UserIcon,
 } from '../../icons';
 import { NAVIGATION, findActiveItem, isActivePath } from './navigation';
@@ -40,7 +40,8 @@ export const DashboardHeader = ({
   onOpenChangePassword,
 }: DashboardHeaderProps) => {
   const { user, logout } = useAuth();
-  const { theme, toggle } = useTheme();
+  // Dark mode toggle disabled for now.
+  // const { theme, toggle } = useTheme();
   const { path, navigate } = useNavigation();
 
   const crumbs = path.split('/').filter(Boolean).map(titleCase);
@@ -105,19 +106,21 @@ export const DashboardHeader = ({
   return (
     <header
       className={cn(
-        'fixed top-0 right-0 z-20 h-[73px] bg-canvas/85 backdrop-blur-md border-b border-line',
+        'fixed top-0 right-0 z-20 h-[73px] bg-gradient-to-r from-brand-tint/60 via-canvas/90 to-canvas/90 backdrop-blur-md border-b border-line',
         'transition-all duration-300 ease-in-out',
         isCollapsed ? 'left-0' : 'left-0 lg:left-72',
       )}
     >
       <div className="flex h-full items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-2">
-          <IconButton
-            label={isCollapsed ? 'Open sidebar' : 'Close sidebar'}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <MenuIcon size={18} />
-          </IconButton>
+          {/* Only shown while the sidebar is hidden — once it's open, its own
+              collapse button (top of the sidebar) is the way to close it, so
+              this hamburger button steps aside instead of duplicating it. */}
+          {isCollapsed && (
+            <IconButton label="Open sidebar" onClick={() => setIsCollapsed(false)}>
+              <MenuIcon size={18} />
+            </IconButton>
+          )}
 
           {isCollapsed && (
             <DropdownMenu
@@ -161,6 +164,7 @@ export const DashboardHeader = ({
         </div>
 
         <div className="flex items-center gap-0.5">
+          {/* Dark mode toggle — disabled for now.
           <IconButton
             label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             onClick={toggle}
@@ -168,6 +172,7 @@ export const DashboardHeader = ({
           >
             {theme === 'dark' ? <SunIcon size={18} /> : <MoonIcon size={18} />}
           </IconButton>
+          */}
 
           <NotificationsMenu />
 

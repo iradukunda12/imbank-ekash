@@ -7,13 +7,26 @@ interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, '
   onValueChange: (value: string) => void;
   shortcut?: string;
   size?: 'md' | 'sm';
+  /** Override the resting border colour. Defaults to the plain `border-line`
+   * every other field uses; kept as its own slot (rather than folded into
+   * `className`) so a caller can swap it without the two colours fighting. */
+  borderClassName?: string;
 }
 
-export const SearchInput = ({ value, onValueChange, shortcut, size = 'md', className, ...rest }: SearchInputProps) => {
+export const SearchInput = ({
+  value,
+  onValueChange,
+  shortcut,
+  size = 'md',
+  borderClassName = 'border-line',
+  className,
+  ...rest
+}: SearchInputProps) => {
   return (
     <label
       className={cn(
-        'flex items-center gap-2 rounded-lg border border-line text-ink-soft',
+        'flex items-center gap-2 rounded-lg border text-ink-soft',
+        borderClassName,
         'focus-within:border-primary focus-within:ring-2 focus-within:ring-brand-tint',
         size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
         className,

@@ -13,7 +13,7 @@ interface SidebarProps {
 }
 
 const SectionTitle = ({ children }: { children: string }) => (
-  <p className="px-3 pb-2 pt-5 text-[10.5px] font-semibold uppercase tracking-[0.09em] text-ink-faint">{children}</p>
+  <p className="px-3 pb-2 pt-5 text-[10.5px] font-semibold uppercase tracking-[0.09em] text-primary-400/85">{children}</p>
 );
 
 const NavLink = ({ item, depth, onNavigate }: { item: NavItem; depth: number; onNavigate: () => void }) => {
@@ -111,7 +111,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, className }: SidebarProps
     <nav
       aria-label="Primary"
       className={cn(
-        'flex w-72 flex-col bg-canvas border-r border-line',
+        'flex w-72 flex-col bg-gradient-to-t from-brand-tint/50 via-canvas to-canvas border-r border-line shadow-[6px_0_24px_-18px_rgba(15,23,42,0.18)]',
         'transition-transform duration-300 ease-in-out',
         isCollapsed ? '-translate-x-full' : 'translate-x-0',
         className,
@@ -130,13 +130,13 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, className }: SidebarProps
         </button>
       </div>
 
-      <div className="shrink-0 px-3 pb-1">
+      <div className="shrink-0 px-3 pb-4">
         <SearchInput
           value={query}
           onValueChange={setQuery}
           placeholder="Search anything"
           shortcut="&#8984; K"
-          className="bg-muted focus-within:bg-canvas"
+          borderClassName="border-primary-200"
         />
       </div>
 
@@ -145,7 +145,6 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, className }: SidebarProps
           <NavGroup key={section.title ?? section.items[0].path} section={section} onNavigate={handleNavigate} />
         ))}
       </div>
-
     </nav>
   );
 };

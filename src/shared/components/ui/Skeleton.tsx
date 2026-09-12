@@ -1,15 +1,32 @@
 import type { CSSProperties } from 'react';
 import { cn } from '../../lib/cn';
 
+type SkeletonTone = 'neutral' | 'brand';
+
 interface SkeletonProps {
   className?: string;
   circle?: boolean;
+  /** 'brand' for a placeholder standing in for something that's normally
+   * tinted (an icon chip, an avatar) — softer and closer to the real
+   * content than a flat grey block would be. Defaults to 'neutral'. */
+  tone?: SkeletonTone;
   style?: CSSProperties;
 }
 
-export const Skeleton = ({ className, circle, style }: SkeletonProps) => (
+const toneClasses: Record<SkeletonTone, string> = {
+  neutral: 'bg-line/60',
+  brand: 'bg-brand-tint',
+};
+
+export const Skeleton = ({ className, circle, tone = 'neutral', style }: SkeletonProps) => (
   <div
-    className={cn('animate-pulse bg-line', circle ? 'rounded-full' : 'rounded-lg', !className?.includes('h-') && 'h-3', className)}
+    className={cn(
+      'animate-pulse',
+      toneClasses[tone],
+      circle ? 'rounded-full' : 'rounded-lg',
+      !className?.includes('h-') && 'h-3',
+      className,
+    )}
     style={style}
   />
 );
