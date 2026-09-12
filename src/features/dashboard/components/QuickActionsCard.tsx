@@ -10,20 +10,20 @@ const QuickActionsCard = () => {
 
   return (
     <Card>
-      <h3 className="text-base font-bold text-slate-900">Quick Actions</h3>
-      <p className="mt-0.5 text-xs text-slate-400">Manage your money in a couple of taps.</p>
+      <h3 className="text-base font-bold text-ink">Quick Actions</h3>
+      <p className="mt-0.5 text-xs text-ink-faint">Manage your money in a couple of taps.</p>
 
-      <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-        <SearchIcon className="h-4 w-4 text-slate-400" />
+      <div className="mt-4 flex items-center gap-2 rounded-lg border border-primary-200 bg-brand-tint/40 px-3 py-2.5">
+        <SearchIcon className="h-4 w-4 text-primary-400" />
         <input
           type="text"
           placeholder="Search an account or service..."
-          className="w-full bg-transparent text-sm text-slate-600 placeholder:text-slate-400 focus:outline-none"
+          className="w-full bg-transparent text-sm text-ink-soft placeholder:text-ink-faint focus:outline-none"
         />
       </div>
 
-      <p className="mt-3 text-xs text-slate-400">
-        Recent: <span className="font-medium text-slate-600">Rebate Claim - Sept 2026</span>
+      <p className="mt-3 text-xs text-ink-faint">
+        Recent: <span className="font-medium text-ink-soft">Rebate Claim - Sept 2026</span>
       </p>
 
       <div className="mt-4 flex items-center gap-2.5">
@@ -37,7 +37,7 @@ const QuickActionsCard = () => {
         ))}
         <button
           type="button"
-          className="ml-auto flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50"
+          className="ml-auto flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink-faint hover:bg-hover"
           aria-label="More actions"
         >
           <ChevronRightIcon className="h-4 w-4" />

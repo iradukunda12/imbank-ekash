@@ -7,7 +7,7 @@ interface AvatarProps {
   className?: string;
 }
 
-const PALETTE = ['#0199a6', '#017e89', '#024a51', '#2eb3bd', '#5cc9d1'];
+const PALETTE = ['#223d94', '#1a2e70', '#152559', '#2c4fbf', '#101c43'];
 
 const initialsOf = (name: string) => {
   const parts = name.trim().split(/\s+/).filter(Boolean);

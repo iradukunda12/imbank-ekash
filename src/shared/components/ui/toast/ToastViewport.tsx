@@ -1,52 +1,75 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CheckIcon, CloseIcon, ClockIcon, EyeIcon } from '../../../icons';
 import { cn } from '../../../lib/cn';
 import { ToastContext, type ToastOptions, type ToastRecord, type ToastTone } from './toast-context';
 
-const TONE_STYLES: Record<ToastTone, { border: string; icon: ReactNode; iconWrap: string }> = {
+const TONE_STYLES: Record<ToastTone, { icon: ReactNode; iconWrap: string; bar: string }> = {
   success: {
-    border: 'border-l-emerald-500',
-    iconWrap: 'bg-emerald-50 text-emerald-600',
+    iconWrap: 'bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-600/15',
     icon: <CheckIcon size={14} />,
+    bar: 'bg-emerald-500',
   },
   error: {
-    border: 'border-l-rose-500',
-    iconWrap: 'bg-rose-50 text-rose-600',
+    iconWrap: 'bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-600/15',
     icon: <CloseIcon size={14} />,
+    bar: 'bg-rose-500',
   },
   warning: {
-    border: 'border-l-amber-500',
-    iconWrap: 'bg-amber-50 text-amber-600',
+    iconWrap: 'bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-600/15',
     icon: <ClockIcon size={14} />,
+    bar: 'bg-amber-500',
   },
   info: {
-    border: 'border-l-sky-500',
-    iconWrap: 'bg-sky-50 text-sky-600',
+    iconWrap: 'bg-sky-50 text-sky-600 ring-1 ring-inset ring-sky-600/15',
     icon: <EyeIcon size={14} />,
+    bar: 'bg-sky-500',
   },
 };
 
+/** How long the exit transition takes — must match the `duration-*` class below. */
+const EXIT_MS = 180;
+
 interface ToastCardProps {
-  toast: Pick<ToastRecord, 'id' | 'tone' | 'title' | 'description' | 'action'>;
+  toast: Pick<ToastRecord, 'id' | 'tone' | 'title' | 'description' | 'action' | 'duration'>;
   onDismiss: (id: string) => void;
   standalone?: boolean;
 }
 
 export const ToastCard = ({ toast, onDismiss, standalone }: ToastCardProps) => {
   const [expanded, setExpanded] = useState(false);
+  const [entered, setEntered] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [paused, setPaused] = useState(false);
   const style = TONE_STYLES[toast.tone];
   const isLong = (toast.description?.length ?? 0) > 140;
+  const canAutoDismiss = !standalone && !!toast.duration && toast.duration > 0;
+
+  // Flip in on the next frame so the initial (pre-transition) state actually paints first.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const requestClose = useCallback(() => setLeaving(true), []);
+
+  useEffect(() => {
+    if (!leaving) return;
+    const timer = window.setTimeout(() => onDismiss(toast.id), EXIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [leaving, onDismiss, toast.id]);
 
   return (
     <div
       role="status"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
       className={cn(
-        'w-full max-w-sm rounded-lg border border-l-4 border-line bg-canvas p-3.5 shadow-lg',
-        style.border,
+        'w-full max-w-sm overflow-hidden rounded-lg border border-line bg-canvas shadow-lg ring-1 ring-black/[0.02] transition-all ease-out',
+        entered && !leaving ? 'duration-[220ms] translate-y-0 scale-100 opacity-100' : 'duration-[180ms] -translate-y-1.5 scale-[0.98] opacity-0',
         standalone && 'relative',
       )}
     >
-      <div className="flex gap-2.5">
+      <div className="flex gap-2.5 p-3.5">
         <span className={cn('mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg', style.iconWrap)}>
           {style.icon}
         </span>
@@ -71,7 +94,7 @@ export const ToastCard = ({ toast, onDismiss, standalone }: ToastCardProps) => {
               type="button"
               onClick={() => {
                 toast.action?.onClick();
-                onDismiss(toast.id);
+                requestClose();
               }}
               className="mt-1.5 text-[12px] font-semibold text-brand-ink hover:underline"
             >
@@ -81,13 +104,29 @@ export const ToastCard = ({ toast, onDismiss, standalone }: ToastCardProps) => {
         </div>
         <button
           type="button"
-          onClick={() => onDismiss(toast.id)}
+          onClick={requestClose}
           aria-label="Dismiss notification"
-          className="shrink-0 rounded-lg p-1 text-ink-faint hover:bg-hover hover:text-ink"
+          className="shrink-0 p-1 text-ink-faint transition-colors hover:text-ink"
         >
           <CloseIcon size={14} />
         </button>
       </div>
+
+      {canAutoDismiss && (
+        <div className="h-0.5 w-full bg-black/[0.06]">
+          <div
+            className={cn('h-full origin-left', style.bar)}
+            style={{
+              animationName: 'toast-progress',
+              animationTimingFunction: 'linear',
+              animationFillMode: 'forwards',
+              animationDuration: `${toast.duration}ms`,
+              animationPlayState: paused ? 'paused' : 'running',
+            }}
+            onAnimationEnd={requestClose}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -96,26 +135,23 @@ const MAX_VISIBLE = 3;
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
+  const idsRef = useRef(0);
 
   const dismiss = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const toast = useCallback(
-    (options: ToastOptions) => {
-      const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      const record: ToastRecord = { tone: 'info', duration: 4500, ...options, id };
+  const toast = useCallback((options: ToastOptions) => {
+    idsRef.current += 1;
+    const id = `toast-${Date.now()}-${idsRef.current}`;
+    const record: ToastRecord = { tone: 'info', duration: 4500, ...options, id };
 
-      setToasts((prev) => [...prev, record].slice(-MAX_VISIBLE * 2));
+    // Auto-dismiss timing lives entirely in ToastCard (its progress bar drives
+    // the close, and pauses on hover) — this just holds the queue.
+    setToasts((prev) => [...prev, record].slice(-MAX_VISIBLE * 2));
 
-      if (record.duration && record.duration > 0) {
-        setTimeout(() => dismiss(id), record.duration);
-      }
-
-      return id;
-    },
-    [dismiss],
-  );
+    return id;
+  }, []);
 
   const value = useMemo(() => ({ toasts, toast, dismiss }), [toasts, toast, dismiss]);
 
