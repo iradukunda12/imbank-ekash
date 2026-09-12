@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import Card from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
 import { IconButton } from '../../../shared/components/ui/IconButton';
@@ -12,6 +13,15 @@ import { Spinner } from '../../../shared/components/ui/Spinner';
 import { Skeleton, SkeletonText } from '../../../shared/components/ui/Skeleton';
 import { LoadingScreen } from '../../../shared/components/LoadingScreen';
 import { DropdownMenu, type MenuItem } from '../../../shared/components/ui/DropdownMenu';
+import {
+  Table,
+  TableHead,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableActionsMenu,
+} from '../../../shared/components/ui/Table';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { Popover } from '../../../shared/components/ui/Popover';
 import { ToastCard } from '../../../shared/components/ui/toast/ToastViewport';
@@ -19,6 +29,7 @@ import { useToast } from '../../../shared/components/ui/toast/useToast';
 import type { ToastTone } from '../../../shared/components/ui/toast/toast-context';
 import {
   ArchiveIcon,
+  BellIcon,
   CheckIcon,
   ChevronDownIcon,
   ClockIcon,
@@ -80,7 +91,7 @@ export const DesignSystemPage = () => {
   ];
 
   return (
-    <div className="max-w-5xl space-y-6 p-4 sm:p-6">
+    <div className="w-full space-y-6 p-4 sm:p-6">
       <header>
         <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-ink sm:text-[25px]">Design system</h1>
         <p className="mt-1 text-[13px] text-ink-soft">
@@ -354,7 +365,7 @@ export const DesignSystemPage = () => {
 
                 <div className="space-y-3.5 p-4">
                   <Field label="Dealer accounts">
-                    <MultiSelect options={DEALER_OPTIONS} value={dealers} onChange={setDealers} placeholder="Any dealer" maxChips={2} />
+                    <MultiSelect options={DEALER_OPTIONS} value={dealers} onChange={setDealers} placeholder="Any dealer" maxChips={2} usePortal />
                   </Field>
 
                   <Field label="Reference">
@@ -363,7 +374,7 @@ export const DesignSystemPage = () => {
                 </div>
 
                 <footer className="flex items-center justify-end gap-2 border-t border-line bg-muted px-4 py-3">
-                  <Button variant="secondary" onClick={close}>
+                  <Button variant="ghost" onClick={close}>
                     Cancel
                   </Button>
                   <Button
@@ -418,6 +429,72 @@ export const DesignSystemPage = () => {
         </Row>
       </Section>
 
+      <Section
+        id="data-table"
+        title="Data table"
+        description="A shared Table primitive (not hand-rolled markup per feature): sortable columns use a chevrons-up-down icon, and each row's Actions menu is a bordered button (not a bare icon) that renders through a portal, so it always escapes a horizontally-scrolling table. This exact component is what the real Upcoming Payments table is built from."
+        source="shared/components/ui/Table"
+      >
+        <div className="overflow-hidden rounded-lg border border-line">
+          <Table>
+            <TableHead>
+              <TableHeaderCell className="w-[104px]">Actions</TableHeaderCell>
+              <TableHeaderCell sortable active>
+                Task
+              </TableHeaderCell>
+              <TableHeaderCell sortable>Status</TableHeaderCell>
+              <TableHeaderCell sortable>Priority</TableHeaderCell>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  <TableActionsMenu
+                    label="Row actions example"
+                    items={[
+                      { id: 'view', label: 'View details', icon: EyeIcon },
+                      { id: 'remind', label: 'Send reminder', icon: BellIcon },
+                    ]}
+                  />
+                </TableCell>
+                <TableCell className="font-medium text-ink">Business Loan Installment</TableCell>
+                <TableCell>
+                  <Badge tone="warning" icon={<ClockIcon size={14} />}>
+                    Pending
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge tone="danger" icon={<PriorityBars level={3} />}>
+                    High
+                  </Badge>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <TableActionsMenu
+                    label="Row actions example"
+                    items={[
+                      { id: 'view', label: 'View details', icon: EyeIcon },
+                      { id: 'remind', label: 'Send reminder', icon: BellIcon },
+                    ]}
+                  />
+                </TableCell>
+                <TableCell className="font-medium text-ink">Rebate Claim REB-0148</TableCell>
+                <TableCell>
+                  <Badge tone="info" icon={<EyeIcon size={14} />}>
+                    In Progress
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge tone="neutral" icon={<PriorityBars level={1} />}>
+                    Low
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </Section>
+
       <Section id="modal" title="Modal" description="Escape to close, scroll locked behind it, footer actions pinned." source="shared/components/ui/Modal">
         <Row label="Open">
           <Button onClick={() => setModalOpen(true)}>Show modal</Button>
@@ -430,7 +507,7 @@ export const DesignSystemPage = () => {
           description="Every feature modal composes this one."
           footer={
             <>
-              <Button variant="secondary" onClick={() => setModalOpen(false)}>
+              <Button variant="ghost" onClick={() => setModalOpen(false)}>
                 Cancel
               </Button>
               <Button
@@ -499,17 +576,19 @@ export const DesignSystemPage = () => {
           </div>
         </div>
 
-        {showLoader && (
-          <div className="fixed inset-0 z-[200]">
-            <LoadingScreen message="This is the boot screen — click to dismiss" />
-            <button
-              type="button"
-              aria-label="Dismiss the loader preview"
-              onClick={() => setShowLoader(false)}
-              className="absolute inset-0 cursor-pointer"
-            />
-          </div>
-        )}
+        {showLoader &&
+          createPortal(
+            <div className="fixed inset-0 z-[200]">
+              <LoadingScreen message="This is the boot screen — click to dismiss" />
+              <button
+                type="button"
+                aria-label="Dismiss the loader preview"
+                onClick={() => setShowLoader(false)}
+                className="absolute inset-0 cursor-pointer"
+              />
+            </div>,
+            document.body,
+          )}
       </Section>
 
       <Section id="cards" title="Cards" description="The panel every dashboard block sits on." source="shared/components/ui/Card">

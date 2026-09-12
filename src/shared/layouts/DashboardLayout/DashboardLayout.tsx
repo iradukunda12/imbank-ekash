@@ -55,8 +55,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <section
           className={
             !isCollapsed
-              ? 'z-10 ml-0 min-h-screen w-full bg-canvas transition-all duration-300 ease-in-out lg:ml-72 lg:w-[calc(100vw-18rem)]'
-              : 'ml-0 min-h-screen w-full bg-canvas transition-all duration-300 ease-in-out'
+              ? 'z-10 ml-0 min-h-screen w-full bg-surface transition-all duration-300 ease-in-out lg:ml-72 lg:w-[calc(100vw-18rem)]'
+              : 'ml-0 min-h-screen w-full bg-surface transition-all duration-300 ease-in-out'
           }
         >
           <div className="w-full pt-[73px]">{children}</div>

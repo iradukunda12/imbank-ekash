@@ -50,13 +50,15 @@ const DashboardPage = () => {
       <HighlightsSection />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <ProgressOverviewChart />
-        <WeeklyActivitySplit />
-      </div>
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          <ProgressOverviewChart />
+          <UpcomingPaymentsTable />
+        </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <UpcomingPaymentsTable />
-        <QuickActionsCard />
+        <div className="flex flex-col gap-6">
+          <WeeklyActivitySplit />
+          <QuickActionsCard />
+        </div>
       </div>
     </div>
   );

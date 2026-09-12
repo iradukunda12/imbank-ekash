@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { CloseIcon } from '../../icons';
 
 interface ModalProps {
@@ -31,7 +32,10 @@ export const Modal = ({ isOpen, onClose, title, description, children, footer }:
 
   if (!isOpen) return null;
 
-  return (
+  // Rendered through a portal at the document root so the overlay always
+  // covers the entire page — including the fixed sidebar — no matter where
+  // in the component tree the modal is opened from.
+  return createPortal(
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
@@ -59,7 +63,8 @@ export const Modal = ({ isOpen, onClose, title, description, children, footer }:
 
         {footer && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

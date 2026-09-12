@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../lib/cn';
 import { CheckIcon, ChevronDownIcon, CloseIcon } from '../../icons';
 import { groupOptions, type SelectOption } from './select-option';
@@ -12,6 +13,14 @@ interface MultiSelectProps {
   searchable?: boolean;
   maxChips?: number;
   className?: string;
+  /**
+   * Render the options panel through a portal at the document root instead
+   * of as a normal absolutely-positioned child. Use this when the field
+   * sits inside another floating panel (e.g. a Popover) with
+   * `overflow-hidden` — without it, the options list can get clipped by
+   * that ancestor instead of floating above everything.
+   */
+  usePortal?: boolean;
 }
 
 export const MultiSelect = ({
@@ -23,22 +32,47 @@ export const MultiSelect = ({
   searchable = true,
   maxChips = 3,
   className,
+  usePortal = false,
 }: MultiSelectProps) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [coords, setCoords] = useState<{ top: number; left: number; width: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const updateCoords = () => {
+    if (!usePortal || !fieldRef.current) return;
+    const rect = fieldRef.current.getBoundingClientRect();
+    setCoords({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+  };
 
   useEffect(() => {
     if (!open) return;
+
+    updateCoords();
+
     const onPointerDown = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const insideRoot = rootRef.current?.contains(target);
+      const insidePanel = panelRef.current?.contains(target);
+      if (!insideRoot && !insidePanel) {
         setOpen(false);
         setQuery('');
       }
     };
+    const onReposition = () => updateCoords();
+
     document.addEventListener('mousedown', onPointerDown);
-    return () => document.removeEventListener('mousedown', onPointerDown);
+    window.addEventListener('scroll', onReposition, true);
+    window.addEventListener('resize', onReposition);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('scroll', onReposition, true);
+      window.removeEventListener('resize', onReposition);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const selectedOptions = options.filter((o) => value.includes(o.value));
@@ -58,10 +92,74 @@ export const MultiSelect = ({
     onChange(value.slice(0, -1));
   };
 
+  const panel = open && (
+    <div
+      ref={panelRef}
+      // Marks this panel so an ancestor Popover's outside-click check can
+      // recognise a click landing here as "inside" even though the portal
+      // moved it out of the Popover's own DOM subtree.
+      data-ui-portal={usePortal ? 'true' : undefined}
+      className={cn(
+        'z-30 max-h-64 overflow-y-auto rounded-lg border border-line bg-canvas py-1.5 shadow-xl',
+        usePortal ? 'fixed' : 'absolute mt-1.5 w-full',
+      )}
+      style={usePortal && coords ? { top: coords.top, left: coords.left, width: coords.width } : undefined}
+    >
+      {selectedOptions.length > 0 && (
+        <button
+          type="button"
+          onClick={() => onChange([])}
+          className="w-full px-3.5 py-1.5 text-left text-[12px] font-medium text-ink-faint hover:text-ink"
+        >
+          Clear all
+        </button>
+      )}
+
+      {groupOptions(filtered).map(([group, groupItems]) => (
+        <div key={group ?? '_'}>
+          {group && (
+            <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wide text-primary-400/85">{group}</p>
+          )}
+          {groupItems.map((opt) => {
+            const checked = value.includes(opt.value);
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                disabled={opt.disabled}
+                onClick={() => toggle(opt.value)}
+                className={cn(
+                  'flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] transition-colors',
+                  opt.disabled ? 'cursor-not-allowed text-ink-faint' : 'text-ink hover:bg-hover',
+                )}
+              >
+                <span
+                  className={cn(
+                    'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
+                    checked ? 'border-primary bg-primary text-on-brand' : 'border-line-strong',
+                  )}
+                >
+                  {checked && <CheckIcon size={11} />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{opt.label}</span>
+                  {opt.hint && <span className="block truncate text-[11.5px] text-ink-faint">{opt.hint}</span>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ))}
+
+      {filtered.length === 0 && <p className="px-3.5 py-3 text-[12.5px] text-ink-faint">No matches</p>}
+    </div>
+  );
+
   return (
     <div ref={rootRef} className="relative">
       <div
         id={id}
+        ref={fieldRef}
         onClick={() => {
           setOpen(true);
           inputRef.current?.focus();
@@ -116,57 +214,7 @@ export const MultiSelect = ({
         <ChevronDownIcon size={14} className={cn('ml-auto shrink-0 text-ink-faint transition-transform', open && 'rotate-180')} />
       </div>
 
-      {open && (
-        <div className="absolute z-30 mt-1.5 max-h-64 w-full overflow-y-auto rounded-lg border border-line bg-canvas py-1.5 shadow-xl">
-          {selectedOptions.length > 0 && (
-            <button
-              type="button"
-              onClick={() => onChange([])}
-              className="w-full px-3.5 py-1.5 text-left text-[12px] font-medium text-ink-faint hover:text-ink"
-            >
-              Clear all
-            </button>
-          )}
-
-          {groupOptions(filtered).map(([group, groupItems]) => (
-            <div key={group ?? '_'}>
-              {group && (
-                <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wide text-ink-faint">{group}</p>
-              )}
-              {groupItems.map((opt) => {
-                const checked = value.includes(opt.value);
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    disabled={opt.disabled}
-                    onClick={() => toggle(opt.value)}
-                    className={cn(
-                      'flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] transition-colors',
-                      opt.disabled ? 'cursor-not-allowed text-ink-faint' : 'text-ink hover:bg-hover',
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
-                        checked ? 'border-primary bg-primary text-on-brand' : 'border-line-strong',
-                      )}
-                    >
-                      {checked && <CheckIcon size={11} />}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate">{opt.label}</span>
-                      {opt.hint && <span className="block truncate text-[11.5px] text-ink-faint">{opt.hint}</span>}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-
-          {filtered.length === 0 && <p className="px-3.5 py-3 text-[12.5px] text-ink-faint">No matches</p>}
-        </div>
-      )}
+      {panel && (usePortal ? createPortal(panel, document.body) : panel)}
     </div>
   );
 };
