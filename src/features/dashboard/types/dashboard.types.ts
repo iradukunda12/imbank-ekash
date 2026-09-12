@@ -1,10 +1,17 @@
+export type StatVisual =
+  | { type: 'bars'; points: number[] }
+  | { type: 'segments'; segments: { label: string; percentage: number; color: string }[] }
+  | { type: 'gauge'; percent: number; caption: string };
+
 export interface HighlightStat {
   id: string;
   label: string;
   value: string;
   delta: string;
   deltaTone: 'up' | 'down';
+  caption: string;
   icon: 'wallet' | 'transactions' | 'rebate' | 'streak';
+  visual: StatVisual;
 }
 
 export interface ProgressPoint {

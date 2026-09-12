@@ -144,7 +144,7 @@ export const SearchSelect = ({
             {groupOptions(filtered).map(([group, groupItems]) => (
               <div key={group ?? '_'}>
                 {group && (
-                  <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wide text-ink-faint">{group}</p>
+                  <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wide text-primary-400/85">{group}</p>
                 )}
                 {groupItems.map((opt) => {
                   const idx = enabledFiltered.indexOf(opt);

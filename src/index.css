@@ -2,26 +2,27 @@
 
 /*
   Brand theme for IMBank eKash.
-  Primary brand teal: #0199A6
-  Paired with white (#FFFFFF) for the signature teal -> white gradient
-  used across the sidebar, primary buttons and highlight accents.
+  Primary/brand color: indigo secondary #223D94.
+  The whole app is restricted to this one accent color plus black,
+  white and grey — no teal. Status colors (success/warning/danger/info)
+  are kept distinct on purpose since they carry meaning.
 */
 @theme {
-  --color-primary: #0199a6;
-  --color-primary-50: #e6f7f8;
-  --color-primary-100: #c8eef1;
-  --color-primary-200: #93dde3;
-  --color-primary-300: #5cc9d1;
-  --color-primary-400: #2eb3bd;
-  --color-primary-500: #0199a6;
-  --color-primary-600: #017e89;
-  --color-primary-700: #01646d;
-  --color-primary-800: #024a51;
-  --color-primary-900: #05333a;
-  --color-primary-950: #02252a;
+  --color-primary: #223d94;
+  --color-primary-50: #e5eaf9;
+  --color-primary-100: #c7d1f2;
+  --color-primary-200: #90a5e6;
+  --color-primary-300: #5574d8;
+  --color-primary-400: #2c4fbf;
+  --color-primary-500: #223d94;
+  --color-primary-600: #1a2e70;
+  --color-primary-700: #152559;
+  --color-primary-800: #101c43;
+  --color-primary-900: #0c1533;
+  --color-primary-950: #080f24;
 
-  --color-surface: #f2f8f9;
-  --color-surface-muted: #e7f3f4;
+  --color-surface: #eceef5;
+  --color-surface-muted: #e4e7f0;
 
   /* Semantic tokens (same vocabulary as the rebate-project design system) */
   --color-ink: #0f172a;
@@ -32,23 +33,23 @@
   --color-line-strong: #b3b3b3;
   --color-hover: #f8fafc;
   --color-muted: #f2f8f9;
-  --color-brand-tint: #e6f7f8;
-  --color-brand-ink: #017e89;
+  --color-brand-tint: #e5eaf9;
+  --color-brand-ink: #1a2e70;
   --color-on-brand: #ffffff;
-  --color-primary-soft: #017e89;
+  --color-primary-soft: #1a2e70;
 
   /* Flat status/brand swatches referenced by the design-system token grid */
-  --color-brand: #0199a6;
+  --color-brand: #223d94;
   --color-secondary: #223d94;
-  --color-accent: #0299a7;
+  --color-accent: #0f172a;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #f43f5e;
   --color-info: #0ea5e9;
 
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Lato', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
-  --shadow-card: 0 1px 2px rgba(10, 41, 69, 0.04), 0 8px 24px -12px rgba(1, 153, 166, 0.18);
+  --shadow-card: 0 1px 2px rgba(10, 41, 69, 0.03), 0 6px 14px -10px rgba(34, 61, 148, 0.12);
 }
 
 /*
@@ -67,7 +68,7 @@
   --color-line-strong: #595959;
   --color-hover: #172033;
   --color-muted: #111a2c;
-  --color-brand-tint: #0a2e30;
+  --color-brand-tint: #182449;
 }
 
 @layer base {
@@ -84,11 +85,11 @@
 
 @layer utilities {
   .brand-gradient {
-    background-image: linear-gradient(135deg, #0199a6 0%, #4dc2cc 55%, #ffffff 140%);
+    background-image: linear-gradient(135deg, #223d94 0%, #5574d8 55%, #ffffff 140%);
   }
 
   .brand-gradient-soft {
-    background-image: linear-gradient(135deg, rgba(1, 153, 166, 0.12) 0%, rgba(255, 255, 255, 0.4) 100%);
+    background-image: linear-gradient(135deg, rgba(34, 61, 148, 0.12) 0%, rgba(255, 255, 255, 0.4) 100%);
   }
 
   .card-surface {
@@ -101,8 +102,16 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: rgba(1, 153, 166, 0.25);
+    background-color: rgba(34, 61, 148, 0.25);
     border-radius: 9999px;
   }
 
+  @keyframes toast-progress {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
 }
